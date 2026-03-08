@@ -1,0 +1,30 @@
+import type { Metadata } from "next"
+import { Sarabun } from "next/font/google"
+import { Toaster } from "sonner"
+import { AuthProvider } from "@/lib/auth-context"
+import "./globals.css"
+
+const sarabun = Sarabun({
+  subsets: ["thai", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+})
+
+export const metadata: Metadata = {
+  title: "QueueNow - ระบบจองคิวออนไลน์",
+  description: "ระบบจองคิวออนไลน์สำหรับหลายร้าน ง่าย สะดวก รวดเร็ว",
+  generator: "v0.app",
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="th">
+      <body className={`${sarabun.variable} font-sans antialiased`}>
+        <AuthProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+        </AuthProvider>
+      </body>
+    </html>
+  )
+}
