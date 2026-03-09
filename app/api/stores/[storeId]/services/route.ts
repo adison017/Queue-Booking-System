@@ -17,7 +17,8 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ storeI
     id: service.id,
     name: service.name,
     duration_minutes: service.durationMinutes,
-    price: Number(service.price)
+    price: Number(service.price),
+    categoryId: service.categoryId
   }))
   
   return NextResponse.json({ services: formattedServices })
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sto
     return NextResponse.json({ error: "ไม่มีสิทธิ์" }, { status: 403 })
   }
 
-  const { name, duration_minutes, price } = await req.json()
+  const { name, duration_minutes, duration_days, price, categoryId } = await req.json()
   if (!name || !duration_minutes || price === undefined) {
     return NextResponse.json({ error: "กรุณากรอกข้อมูลให้ครบ" }, { status: 400 })
   }
@@ -51,13 +52,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sto
       storeId: parseInt(storeId),
       name,
       durationMinutes: duration_minutes,
-      price
+      durationDays: duration_days || 0,
+      price,
+      categoryId: categoryId ? parseInt(categoryId) : null
     },
     select: {
       id: true,
       name: true,
       durationMinutes: true,
-      price: true
+      durationDays: true,
+      price: true,
+      categoryId: true
     }
   })
   
@@ -65,7 +70,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sto
     id: service.id,
     name: service.name,
     duration_minutes: service.durationMinutes,
-    price: Number(service.price)
+    duration_days: service.durationDays,
+    price: Number(service.price),
+    categoryId: service.categoryId
   }
   
   return NextResponse.json({ service: formattedService })

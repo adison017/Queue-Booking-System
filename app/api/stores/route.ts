@@ -44,6 +44,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "กรุณากรอกชื่อร้าน" }, { status: 400 })
   }
 
+  // Check store limit (max 5 stores per owner)
+  const existingStores = await db.store.count({
+    where: {
+      ownerId: session.id
+    }
+  })
+
+  if (existingStores >= 5) {
+    return NextResponse.json({ error: "คุณสามารถสร้างร้านได้สูงสุด 5 ร้านเท่านั้น" }, { status: 400 })
+  }
+
   const store = await db.store.create({
     data: {
       name,

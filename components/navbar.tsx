@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { CalendarDays, LayoutDashboard, LogOut, Menu, Store, User, X } from "lucide-react"
+import { CalendarDays, LayoutDashboard, LogOut, Menu, Store, User, X, ShieldCheck, BarChart3, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
@@ -36,33 +36,67 @@ export function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-1 md:flex">
-          <Link href="/stores">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Store className="h-4 w-4" />
-              ร้านค้าทั้งหมด
-            </Button>
-          </Link>
+          {(!user || user.role === "CUSTOMER") && (
+            <Link href="/stores">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Store className="h-4 w-4" />
+                ร้านค้าทั้งหมด
+              </Button>
+            </Link>
+          )}
           {user ? (
             <>
-              {user.role === "OWNER" && (
-                <Link href="/dashboard">
+              {user.role === "CUSTOMER" && (
+                <Link href="/my-bookings">
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    แดชบอร์ด
+                    <CalendarDays className="h-4 w-4" />
+                    การจองของฉัน
                   </Button>
                 </Link>
               )}
-              <Link href="/my-bookings">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <CalendarDays className="h-4 w-4" />
-                  การจองของฉัน
-                </Button>
-              </Link>
+              {user.role === "OWNER" && (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      แดชบอร์ด
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/analytics">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      การวิเคราะห์
+                    </Button>
+                  </Link>
+                </>
+              )}
+              {user.role === "ADMIN" && (
+                <>
+                  <Link href="/admin">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      แอดมินแดชบอร์ด
+                    </Button>
+                  </Link>
+                  <Link href="/admin/users">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      จัดการผู้ใช้งาน
+                    </Button>
+                  </Link>
+                  <Link href="/admin/stores">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Store className="h-4 w-4" />
+                      จัดการร้านค้า
+                    </Button>
+                  </Link>
+                </>
+              )}
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border">
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-medium leading-tight">{user.name}</span>
                   <Badge variant="secondary" className="text-xs h-4 px-1">
-                    {user.role === "OWNER" ? "เจ้าของร้าน" : "ลูกค้า"}
+                    {user.role === "OWNER" ? "เจ้าของร้าน" : user.role === "ADMIN" ? "ผู้ดูแลระบบ" : "ลูกค้า"}
                   </Badge>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="text-destructive hover:text-destructive">
@@ -91,25 +125,55 @@ export function Navbar() {
       {/* Mobile Nav */}
       {mobileOpen && (
         <div className="border-t border-border bg-card px-4 py-3 md:hidden flex flex-col gap-2">
-          <Link href="/stores" onClick={() => setMobileOpen(false)}>
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Store className="h-4 w-4" />ร้านค้าทั้งหมด
-            </Button>
-          </Link>
+          {(!user || user.role === "CUSTOMER") && (
+            <Link href="/stores" onClick={() => setMobileOpen(false)}>
+              <Button variant="ghost" className="w-full justify-start gap-2">
+                <Store className="h-4 w-4" />ร้านค้าทั้งหมด
+              </Button>
+            </Link>
+          )}
           {user ? (
             <>
-              {user.role === "OWNER" && (
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+              {user.role === "CUSTOMER" && (
+                <Link href="/my-bookings" onClick={() => setMobileOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start gap-2">
-                    <LayoutDashboard className="h-4 w-4" />แดชบอร์ด
+                    <CalendarDays className="h-4 w-4" />การจองของฉัน
                   </Button>
                 </Link>
               )}
-              <Link href="/my-bookings" onClick={() => setMobileOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start gap-2">
-                  <CalendarDays className="h-4 w-4" />การจองของฉัน
-                </Button>
-              </Link>
+              {user.role === "OWNER" && (
+                <>
+                  <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <LayoutDashboard className="h-4 w-4" />แดชบอร์ด
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/analytics" onClick={() => setMobileOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <BarChart3 className="h-4 w-4" />การวิเคราะห์
+                    </Button>
+                  </Link>
+                </>
+              )}
+              {user.role === "ADMIN" && (
+                <>
+                  <Link href="/admin" onClick={() => setMobileOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <ShieldCheck className="h-4 w-4" />แอดมินแดชบอร์ด
+                    </Button>
+                  </Link>
+                  <Link href="/admin/users" onClick={() => setMobileOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Users className="h-4 w-4" />จัดการผู้ใช้งาน
+                    </Button>
+                  </Link>
+                  <Link href="/admin/stores" onClick={() => setMobileOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start gap-2">
+                      <Store className="h-4 w-4" />จัดการร้านค้า
+                    </Button>
+                  </Link>
+                </>
+              )}
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />

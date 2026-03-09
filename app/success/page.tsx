@@ -2,13 +2,15 @@ import Link from 'next/link'
 import { CheckCircle2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Navbar } from '@/components/navbar'
+import { FloatingNav } from "@/components/floating-nav"
+import { AppHeader } from "@/components/app-header"
 
 export default function SuccessPage() {
   return (
-    <>
-      <Navbar />
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-background px-4 py-12">
+    <div className="min-h-screen flex flex-col">
+      <AppHeader />
+      <FloatingNav />
+      <div className="flex-1 flex items-center justify-center bg-background px-4 py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -35,6 +37,6 @@ export default function SuccessPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   )
 }

@@ -3,8 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getSession } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { ServicesTab } from "./services-tab"
-import { SlotsTab } from "./slots-tab"
+import { ScheduleTab } from "./schedule-tab"
 import { BookingsTab } from "./bookings-tab"
+import { BookingSchedule } from "./booking-schedule"
 import { Store, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,13 @@ async function getServices(storeId: string) {
     where: {
       storeId: parseInt(storeId)
     },
+    include: {
+      category: {
+        select: {
+          name: true
+        }
+      }
+    },
     orderBy: {
       id: 'asc'
     }
@@ -32,28 +40,48 @@ async function getServices(storeId: string) {
   return services.map(service => ({
     id: service.id,
     name: service.name,
+    duration_days: service.durationDays,
     duration_minutes: service.durationMinutes,
-    price: Number(service.price)
+    price: Number(service.price),
+    categoryId: service.categoryId,
+    category_name: service.category?.name || "ทั่วไป"
   }))
 }
 
-async function getSlots(storeId: string) {
-  const slots = await db.timeSlot.findMany({
+async function getCategories() {
+  return await db.category.findMany({
+    orderBy: {
+      id: 'asc'
+    }
+  })
+}
+
+async function getSchedules(storeId: string) {
+  const schedules = await db.storeSchedule.findMany({
     where: {
       storeId: parseInt(storeId),
-      slotTime: {
-        gt: new Date()
+    },
+    include: {
+      slots: {
+        orderBy: {
+          startTime: 'asc'
+        }
       }
     },
     orderBy: {
-      slotTime: 'asc'
+      dayOfWeek: 'asc'
     }
   })
   
-  return slots.map(slot => ({
-    id: slot.id,
-    slot_time: slot.slotTime,
-    is_available: slot.isAvailable
+  return schedules.map(schedule => ({
+    id: schedule.id,
+    day_of_week: schedule.dayOfWeek,
+    is_closed: schedule.isClosed,
+    slots: schedule.slots.map(s => ({
+      id: s.id,
+      start_time: s.startTime,
+      end_time: s.endTime
+    }))
   }))
 }
 
@@ -74,17 +102,10 @@ async function getBookings(storeId: string) {
           name: true,
           price: true
         }
-      },
-      slot: {
-        select: {
-          slotTime: true
-        }
       }
     },
     orderBy: {
-      slot: {
-        slotTime: 'desc'
-      }
+      bookingDate: 'desc'
     }
   })
   
@@ -96,7 +117,9 @@ async function getBookings(storeId: string) {
     customer_email: booking.user.email,
     service_name: booking.service.name,
     price: Number(booking.service.price),
-    slot_time: booking.slot.slotTime
+    booking_date: booking.bookingDate,
+    start_time: booking.startTime,
+    end_time: booking.endTime
   }))
 }
 
@@ -105,11 +128,12 @@ export default async function StoreManagePage({ params }: { params: Promise<{ st
   const session = await getSession()
   if (!session || session.role !== "OWNER") redirect("/login")
 
-  const [store, services, slots, bookings] = await Promise.all([
+  const [store, services, schedules, bookings, categories] = await Promise.all([
     getStore(storeId, session.id),
     getServices(storeId),
-    getSlots(storeId),
+    getSchedules(storeId),
     getBookings(storeId),
+    getCategories()
   ])
 
   if (!store) notFound()
@@ -134,20 +158,23 @@ export default async function StoreManagePage({ params }: { params: Promise<{ st
         </div>
       </div>
 
-      <Tabs defaultValue="bookings">
-        <TabsList className="mb-6">
-          <TabsTrigger value="bookings">การจอง ({bookings.length})</TabsTrigger>
-          <TabsTrigger value="services">บริการ ({services.length})</TabsTrigger>
-          <TabsTrigger value="slots">ช่วงเวลา ({slots.length})</TabsTrigger>
+      <Tabs defaultValue="bookings" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="bookings">การจอง</TabsTrigger>
+          <TabsTrigger value="schedule">ตารางเวลา</TabsTrigger>
+          <TabsTrigger value="services">บริการ</TabsTrigger>
         </TabsList>
+        
         <TabsContent value="bookings">
-          <BookingsTab storeId={Number(storeId)} bookings={bookings} />
+          <BookingsTab storeId={parseInt(storeId)} bookings={bookings} />
         </TabsContent>
+        
+        <TabsContent value="schedule">
+          <BookingSchedule storeId={parseInt(storeId)} />
+        </TabsContent>
+        
         <TabsContent value="services">
-          <ServicesTab storeId={Number(storeId)} services={services} />
-        </TabsContent>
-        <TabsContent value="slots">
-          <SlotsTab storeId={Number(storeId)} slots={slots} />
+          <ServicesTab storeId={parseInt(storeId)} services={services} categories={categories} />
         </TabsContent>
       </Tabs>
     </div>

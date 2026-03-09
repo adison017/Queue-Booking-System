@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [form, setForm] = useState({ email: "", password: "" })
@@ -20,23 +22,16 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error)
-        return
-      }
+      const user = await login(form.email, form.password)
       toast.success("เข้าสู่ระบบสำเร็จ")
-      if (data.user.role === "OWNER") {
+      if (user.role === "OWNER") {
         router.push("/dashboard")
       } else {
         router.push("/stores")
       }
       router.refresh()
+    } catch (error: any) {
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }

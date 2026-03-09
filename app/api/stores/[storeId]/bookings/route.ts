@@ -37,17 +37,10 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ storeI
             name: true,
             price: true
           }
-        },
-        slot: {
-          select: {
-            slotTime: true
-          }
         }
       },
       orderBy: {
-        slot: {
-          slotTime: 'asc'
-        }
+        bookingDate: 'desc'
       }
     })
     
@@ -59,7 +52,9 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ storeI
       customer_email: booking.user.email,
       service_name: booking.service.name,
       price: Number(booking.service.price),
-      slot_time: booking.slot.slotTime
+      booking_date: booking.bookingDate,
+      start_time: booking.startTime,
+      end_time: booking.endTime
     }))
     
     return NextResponse.json({ bookings: formattedBookings })
@@ -75,43 +70,66 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sto
     const { storeId } = await params
     if (!session) return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 })
 
-    const { service_id, slot_id } = await req.json()
-    if (!service_id || !slot_id) {
-      return NextResponse.json({ error: "กรุณาเลือกบริการและเวลา" }, { status: 400 })
+    const { service_id, booking_date, start_time, end_time } = await req.json()
+    if (!service_id || !booking_date || !start_time || !end_time) {
+      return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 })
     }
 
-    // Check slot availability
-    const slot = await db.timeSlot.findFirst({
+    // Get service details to validate duration
+    const service = await db.service.findUnique({
+      where: { id: parseInt(service_id) },
+      select: { durationMinutes: true, durationDays: true }
+    })
+
+    if (!service) {
+      return NextResponse.json({ error: "ไม่พบบริการ" }, { status: 404 })
+    }
+
+    // Validate time duration matches service duration
+    const [startHour, startMin] = start_time.split(':').map(Number)
+    const [endHour, endMin] = end_time.split(':').map(Number)
+    
+    const startTotalMinutes = startHour * 60 + startMin
+    const endTotalMinutes = endHour * 60 + endMin
+    
+    const serviceDurationMinutes = service.durationDays * 24 * 60 + service.durationMinutes
+    const bookingDurationMinutes = endTotalMinutes - startTotalMinutes
+
+    if (bookingDurationMinutes < serviceDurationMinutes) {
+      return NextResponse.json({ 
+        error: `ระยะเวลาที่เลือกสั้นเกินไปสำหรับบริการนี้ (ขั้นต่ำ ${service.durationDays > 0 ? service.durationDays + ' วัน ' : ''}${service.durationMinutes} นาที)` 
+      }, { status: 400 })
+    }
+
+    // Check if slot is already booked
+    const existingBooking = await db.booking.findFirst({
       where: {
-        id: parseInt(slot_id),
-        storeId: parseInt(storeId)
+        storeId: parseInt(storeId),
+        bookingDate: new Date(booking_date),
+        startTime: start_time,
+        status: { in: ['PENDING', 'CONFIRMED'] }
       }
     })
-    
-    if (!slot) return NextResponse.json({ error: "ไม่พบช่วงเวลา" }, { status: 404 })
-    if (!slot.isAvailable) return NextResponse.json({ error: "ช่วงเวลานี้ถูกจองแล้ว" }, { status: 409 })
 
-    // Create booking and mark slot as unavailable atomically
+    if (existingBooking) {
+      return NextResponse.json({ error: "ช่วงเวลานี้ถูกจองไปแล้ว" }, { status: 409 })
+    }
+
+    // Create booking
     const booking = await db.booking.create({
       data: {
         storeId: parseInt(storeId),
         userId: session.id,
         serviceId: parseInt(service_id),
-        slotId: parseInt(slot_id)
+        bookingDate: new Date(booking_date),
+        startTime: start_time,
+        endTime: end_time,
+        status: 'PENDING'
       },
       select: {
         id: true,
         status: true,
         createdAt: true
-      }
-    })
-    
-    await db.timeSlot.update({
-      where: {
-        id: parseInt(slot_id)
-      },
-      data: {
-        isAvailable: false
       }
     })
 

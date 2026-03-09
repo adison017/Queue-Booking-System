@@ -16,7 +16,7 @@ export async function GET() {
       _count: {
         select: {
           services: true,
-          timeSlots: true,
+          schedules: true,
           bookings: true
         }
       }
@@ -32,7 +32,7 @@ export async function GET() {
     description: store.description,
     created_at: store.createdAt,
     service_count: store._count.services,
-    slot_count: store._count.timeSlots,
+    schedule_count: store._count.schedules,
     booking_count: store._count.bookings
   }))
   

@@ -3,7 +3,6 @@ import { format } from "date-fns"
 import { th } from "date-fns/locale"
 import { CalendarDays, Store } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Navbar } from "@/components/navbar"
 import { StatusBadge } from "@/components/status-badge"
 import { CancelBookingButton } from "./cancel-booking-button"
 import { getSession } from "@/lib/auth"
@@ -26,27 +25,24 @@ async function getMyBookings(userId: number) {
           name: true,
           price: true
         }
-      },
-      slot: {
-        select: {
-          slotTime: true
-        }
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      bookingDate: 'desc'
     }
   })
   
   return bookings.map(booking => ({
     id: booking.id,
     status: booking.status,
-    created_at: booking.createdAt,
+    created_at: booking.createdAt.toISOString(),
     store_id: booking.store.id,
     store_name: booking.store.name,
     service_name: booking.service.name,
     price: Number(booking.service.price),
-    slot_time: booking.slot.slotTime
+    booking_date: booking.bookingDate,
+    start_time: booking.startTime,
+    end_time: booking.endTime
   }))
 }
 
@@ -57,9 +53,7 @@ export default async function MyBookingsPage() {
   const bookings = await getMyBookings(session.id)
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-4xl px-4 py-10">
+    <>
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-1">การจองของฉัน</h1>
           <p className="text-muted-foreground">ดูและจัดการการจองคิวทั้งหมดของคุณ</p>
@@ -81,7 +75,9 @@ export default async function MyBookingsPage() {
               store_name: string
               service_name: string
               price: number
-              slot_time: string
+              booking_date: string
+              start_time: string
+              end_time: string
             }) => (
               <Card key={b.id}>
                 <CardContent className="p-5">
@@ -97,7 +93,7 @@ export default async function MyBookingsPage() {
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5">{b.service_name} · ฿{Number(b.price).toLocaleString()}</p>
                         <p className="text-sm font-medium mt-1 text-primary">
-                          {format(new Date(b.slot_time), "EEEE d MMM yyyy · HH:mm น.", { locale: th })}
+                          {format(new Date(b.booking_date), "EEEE d MMM yyyy", { locale: th })} · {b.start_time} - {b.end_time} น.
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           จองเมื่อ {format(new Date(b.created_at), "d MMM yyyy", { locale: th })}
@@ -113,7 +109,6 @@ export default async function MyBookingsPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+    </>
   )
 }

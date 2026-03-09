@@ -17,38 +17,67 @@ interface Service {
   duration_minutes: number
   price: number
 }
-interface Slot {
+
+interface ScheduleSlot {
   id: number
-  slot_time: string
-  is_available: boolean
+  start_time: string
+  end_time: string
+}
+
+interface Schedule {
+  id: number
+  day_of_week: number
+  is_closed: boolean
+  slots: ScheduleSlot[]
 }
 
 interface Props {
   storeId: number
   services: Service[]
-  slots: Slot[]
+  schedules: Schedule[]
   isLoggedIn: boolean
 }
 
-export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) {
+export function BookingSection({ storeId, services, schedules, isLoggedIn }: Props) {
   const router = useRouter()
   const [selectedService, setSelectedService] = useState<number | null>(null)
-  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const availableSlots = slots.filter((s) => s.is_available)
+  // Determine day of week (0-6)
+  const dayOfWeek = selectedDate.getDay()
+  const daySchedule = schedules.find(s => s.day_of_week === dayOfWeek)
+  const availableSlots = daySchedule?.slots || []
+
+  // Generate next 7 days for picking
+  const next7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    d.setDate(d.getDate() + i)
+    return d
+  })
 
   const handleBook = async () => {
-    if (!selectedService || !selectedSlot) {
+    if (!selectedService || !selectedSlotId) {
       toast.error("กรุณาเลือกบริการและช่วงเวลา")
       return
     }
+
+    const slot = availableSlots.find(s => s.id === selectedSlotId)
+    if (!slot) return
+
     setLoading(true)
     try {
       const res = await fetch(`/api/stores/${storeId}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ service_id: selectedService, slot_id: selectedSlot }),
+        body: JSON.stringify({ 
+          service_id: selectedService, 
+          booking_date: format(selectedDate, "yyyy-MM-dd"),
+          start_time: slot.start_time,
+          end_time: slot.end_time
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -126,12 +155,52 @@ export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) 
           </div>
         </div>
 
-        {/* Step 2: Select time slot */}
+        {/* Step 2: Select Date */}
         <div>
-          <Label className="text-sm font-semibold mb-3 block">2. เลือกช่วงเวลา</Label>
+          <Label className="text-sm font-semibold mb-3 block">2. เลือกวันที่</Label>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {next7Days.map((date) => {
+              const isActive = format(date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
+              return (
+                <button
+                  key={date.toISOString()}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(date)
+                    setSelectedSlotId(null) // Reset slot when date changes
+                    const dow = date.getDay()
+                    const hasSlots = schedules.find(s => s.day_of_week === dow)?.slots.length ?? 0
+                    if (hasSlots === 0) {
+                      toast.info(`วันที่ ${format(date, "d MMM", { locale: th })} ร้านปิดทำการ`)
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center min-w-[70px] py-3 rounded-xl border transition-all ${
+                    isActive
+                      ? "border-primary bg-primary/5 ring-1 ring-primary text-primary"
+                      : "border-border hover:border-primary/40 hover:bg-muted/50"
+                  }`}
+                >
+                  <span className="text-[10px] uppercase font-bold opacity-60">
+                    {format(date, "EEE", { locale: th })}
+                  </span>
+                  <span className="text-lg font-bold">
+                    {format(date, "d")}
+                  </span>
+                  <span className="text-[10px] opacity-60">
+                    {format(date, "MMM", { locale: th })}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Step 3: Select time slot */}
+        <div>
+          <Label className="text-sm font-semibold mb-3 block">3. เลือกช่วงเวลา</Label>
           {availableSlots.length === 0 ? (
             <p className="text-muted-foreground text-sm py-4 text-center border border-dashed border-border rounded-lg">
-              ไม่มีช่วงเวลาว่าง
+              {daySchedule?.is_closed ? "ร้านปิดทำการในวันเสาร์" : "ไม่มีบริการในวันนี้"}
             </p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto pr-1">
@@ -139,21 +208,21 @@ export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) 
                 <button
                   key={slot.id}
                   type="button"
-                  onClick={() => setSelectedSlot(slot.id)}
+                  onClick={() => setSelectedSlotId(slot.id)}
                   className={`relative rounded-lg border p-3 text-left transition-all ${
-                    selectedSlot === slot.id
+                    selectedSlotId === slot.id
                       ? "border-primary bg-primary/5 ring-1 ring-primary"
                       : "border-border hover:border-primary/40 hover:bg-muted/50"
                   }`}
                 >
-                  {selectedSlot === slot.id && (
+                  {selectedSlotId === slot.id && (
                     <CheckCircle2 className="absolute right-2 top-2 h-4 w-4 text-primary" />
                   )}
                   <p className="font-medium text-sm pr-5">
-                    {format(new Date(slot.slot_time), "EEEE", { locale: th })}
+                    {slot.start_time} - {slot.end_time} น.
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {format(new Date(slot.slot_time), "d MMM yyyy · HH:mm น.", { locale: th })}
+                    ใช้เวลาประมาณ {selectedService ? services.find(s => s.id === selectedService)?.duration_minutes : "?"} นาที
                   </p>
                 </button>
               ))}
@@ -162,9 +231,9 @@ export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) 
         </div>
 
         {/* Summary */}
-        {selectedService && selectedSlot && (() => {
+        {selectedService && selectedSlotId && (() => {
           const sv = services.find((s) => s.id === selectedService)!
-          const sl = availableSlots.find((s) => s.id === selectedSlot)!
+          const sl = availableSlots.find((s) => s.id === selectedSlotId)!
           return (
             <div className="rounded-lg bg-primary/5 border border-primary/20 p-4">
               <p className="text-sm font-semibold text-primary mb-2">สรุปการจอง</p>
@@ -174,8 +243,12 @@ export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) 
                   <span className="font-medium">{sv.name}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">วันที่</span>
+                  <span className="font-medium">{format(selectedDate, "d MMM yyyy", { locale: th })}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">เวลา</span>
-                  <span className="font-medium">{format(new Date(sl.slot_time), "d MMM yyyy HH:mm น.", { locale: th })}</span>
+                  <span className="font-medium">{sl.start_time} - {sl.end_time} น.</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">ราคา</span>
@@ -188,7 +261,7 @@ export function BookingSection({ storeId, services, slots, isLoggedIn }: Props) 
 
         <Button
           onClick={handleBook}
-          disabled={!selectedService || !selectedSlot || loading}
+          disabled={!selectedService || !selectedSlotId || loading}
           className="w-full"
           size="lg"
         >

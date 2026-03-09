@@ -1,9 +1,7 @@
 import Link from "next/link"
-import { ArrowRight, Bookmark, CalendarClock, BarChart3, Plus, Store } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreateStoreDialog } from "./create-store-dialog"
 
 async function getOwnerStores(ownerId: number) {
@@ -15,12 +13,7 @@ async function getOwnerStores(ownerId: number) {
       _count: {
         select: {
           services: true,
-          timeSlots: true,
-          bookings: {
-            where: {
-              status: 'PENDING'
-            }
-          }
+          bookings: true
         }
       }
     },
@@ -33,16 +26,17 @@ async function getOwnerStores(ownerId: number) {
     id: store.id,
     name: store.name,
     description: store.description,
-    service_count: store._count.services,
-    slot_count: store._count.timeSlots,
-    booking_count: store._count.bookings,
-    pending_count: store._count.bookings
+    service_count: store._count?.services || 0,
+    schedule_count: 0,
+    booking_count: store._count?.bookings || 0,
+    pending_count: store._count?.bookings || 0
   }))
 }
 
 export default async function DashboardPage() {
   const session = await getSession()
-  const stores = await getOwnerStores(session!.id)
+  if (!session) return null
+  const stores = await getOwnerStores(session.id)
 
   return (
     <div>
@@ -52,22 +46,16 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground mt-1">สวัสดี, {session!.name}</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/dashboard/analytics">
-            <Button variant="outline" size="sm" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              การวิเคราะห์
-            </Button>
-          </Link>
           <CreateStoreDialog />
         </div>
       </div>
-
       {stores.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-border rounded-2xl">
-          <Store className="h-16 w-16 text-muted-foreground/30 mb-4" />
+          <div className="h-16 w-16 text-muted-foreground/30 mb-4 bg-muted animate-pulse rounded-full flex items-center justify-center font-bold">
+            ?
+          </div>
           <h2 className="text-xl font-semibold">ยังไม่มีร้านค้า</h2>
           <p className="text-muted-foreground mt-1 mb-6">สร้างร้านค้าแรกของคุณเพื่อเริ่มรับการจอง</p>
-          <CreateStoreDialog />
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,7 +64,7 @@ export default async function DashboardPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Store className="h-5 w-5 text-primary" />
+                    S
                   </div>
                   {store.pending_count > 0 && (
                     <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-800">
@@ -92,9 +80,9 @@ export default async function DashboardPage() {
               <CardContent className="flex flex-col gap-4">
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: "บริการ", value: store.service_count, icon: Bookmark },
-                    { label: "ช่วงเวลา", value: store.slot_count, icon: CalendarClock },
-                    { label: "การจอง", value: store.booking_count, icon: Plus },
+                    { label: "บริการ", value: store.service_count },
+                    { label: "วันที่เปิด", value: store.schedule_count },
+                    { label: "การจอง", value: store.booking_count },
                   ].map((stat) => (
                     <div key={stat.label} className="rounded-lg bg-muted/50 p-2.5 text-center">
                       <p className="text-xl font-bold text-primary">{stat.value}</p>
@@ -103,10 +91,9 @@ export default async function DashboardPage() {
                   ))}
                 </div>
                 <Link href={`/dashboard/stores/${store.id}`}>
-                  <Button className="w-full gap-2" variant="outline">
+                  <button className="w-full h-10 rounded bg-primary text-white">
                     จัดการร้าน
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  </button>
                 </Link>
               </CardContent>
             </Card>

@@ -5,10 +5,12 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
+  
+  // Protect admin routes
   if (!session) redirect("/login")
-  if (session.role !== "OWNER") redirect("/stores")
+  if (session.role !== "ADMIN") redirect("/")
 
   return (
     <SidebarProvider>
@@ -21,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">ร้านค้า</BreadcrumbLink>
+                  <BreadcrumbLink href="/admin">แอดมิน</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>

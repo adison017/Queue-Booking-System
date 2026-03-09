@@ -10,9 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/hooks/use-auth"
 
 function RegisterForm() {
   const router = useRouter()
+  const { register } = useAuth()
   const searchParams = useSearchParams()
   const defaultRole = searchParams.get("role") === "OWNER" ? "OWNER" : "CUSTOMER"
 
@@ -29,23 +31,16 @@ function RegisterForm() {
     }
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error)
-        return
-      }
+      const user = await register(form.name, form.email, form.password, role)
       toast.success("สมัครสมาชิกสำเร็จ!")
-      if (role === "OWNER") {
+      if (user.role === "OWNER") {
         router.push("/dashboard")
       } else {
         router.push("/stores")
       }
       router.refresh()
+    } catch (error: any) {
+      toast.error(error.message)
     } finally {
       setLoading(false)
     }
