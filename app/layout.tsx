@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   title: "QueueNow - ระบบจองคิวออนไลน์",
   description: "ระบบจองคิวออนไลน์สำหรับหลายร้าน ง่าย สะดวก รวดเร็ว",
   generator: "v0.app",
+  icons: {
+    icon: "/favicon.ico?v=2",
+    shortcut: "/favicon.ico?v=2",
+    apple: "/apple-icon.png?v=2",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

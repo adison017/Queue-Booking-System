@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BarChart3,
-  CalendarDays,
+  Sparkles,
   ChevronRight,
   LayoutDashboard,
   LogOut,
@@ -14,6 +14,7 @@ import {
   User,
   Users,
 } from 'lucide-react'
+import Image from 'next/image'
 
 import {
   Sidebar,
@@ -95,10 +96,17 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="h-16 border-b border-sidebar-border flex items-center px-4">
         <Link href="/" className="flex items-center gap-3 font-bold text-primary">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <CalendarDays className="h-5 w-5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30 overflow-hidden">
+            <Image
+              src="/favicon.ico?v=2"
+              alt="Logo"
+              width={20}
+              height={20}
+              className="h-5 w-5"
+              priority
+            />
           </div>
-          <span className="text-xl tracking-tight group-data-[collapsible=icon]:hidden">QueueNow</span>
+          <span className="text-xl tracking-tighter group-data-[collapsible=icon]:hidden">QueueNow</span>
         </Link>
       </SidebarHeader>
 

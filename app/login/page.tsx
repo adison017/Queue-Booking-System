@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { CalendarDays, Eye, EyeOff, Loader2 } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,8 +42,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-primary font-bold text-2xl mb-2">
-            <CalendarDays className="h-7 w-7" />
+          <Link href="/" className="inline-flex items-center gap-2 text-primary font-bold text-2xl mb-2 transition-opacity hover:opacity-80">
+            <Image
+              src="/favicon.ico?v=2"
+              alt="Logo"
+              width={28}
+              height={28}
+              className="h-7 w-7"
+              priority
+            />
             QueueNow
           </Link>
           <p className="text-muted-foreground">ยินดีต้อนรับกลับมา</p>

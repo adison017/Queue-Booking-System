@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
-import { CalendarDays } from "lucide-react"
+import Image from "next/image"
 
 export default async function MyBookingsLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -20,7 +20,13 @@ export default async function MyBookingsLayout({ children }: { children: React.R
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <div className="font-bold text-primary flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" />
+                <Image
+                  src="/favicon.ico"
+                  alt="Logo"
+                  width={20}
+                  height={20}
+                  className="h-5 w-5"
+                />
                 <span>QueueNow (การจอง)</span>
               </div>
             </div>

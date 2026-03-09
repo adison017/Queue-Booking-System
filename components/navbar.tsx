@@ -8,6 +8,7 @@ import { CalendarDays, LayoutDashboard, LogOut, Menu, Store, User, X, ShieldChec
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
+import Image from "next/image"
 
 export function Navbar() {
   const router = useRouter()
@@ -29,8 +30,15 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-primary text-xl">
-          <CalendarDays className="h-6 w-6" />
+        <Link href="/" className="flex items-center gap-2 font-bold text-primary text-xl transition-opacity hover:opacity-80">
+          <Image
+            src="/favicon.ico?v=2"
+            alt="Logo"
+            width={24}
+            height={24}
+            className="h-6 w-6"
+            priority
+          />
           <span>QueueNow</span>
         </Link>
 

@@ -12,6 +12,7 @@ import {
   Settings,
   ArrowRight
 } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { FloatingNav } from "@/components/floating-nav"
@@ -106,7 +107,14 @@ export default async function HomePage() {
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <div className="font-bold text-primary flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" />
+                <Image
+                  src="/favicon.ico?v=2"
+                  alt="Logo"
+                  width={20}
+                  height={20}
+                  className="h-5 w-5"
+                  priority
+                />
                 <span>QueueNow Admin</span>
               </div>
             </div>
@@ -203,7 +211,14 @@ export default async function HomePage() {
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <div className="font-bold text-primary flex items-center gap-2">
-                <LayoutDashboard className="h-5 w-5" />
+                <Image
+                  src="/favicon.ico?v=2"
+                  alt="Logo"
+                  width={20}
+                  height={20}
+                  className="h-5 w-5"
+                  priority
+                />
                 <span>ร้านค้าของฉัน</span>
               </div>
             </div>
