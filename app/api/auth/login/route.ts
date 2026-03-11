@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
         name: true,
         email: true,
         password: true,
-        role: true
+        role: true,
+        profileImageUrl: true,
       }
     })
 
@@ -31,9 +32,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" }, { status: 401 })
     }
 
-    await setSession({ id: user.id, name: user.name, email: user.email, role: user.role })
+    await setSession({ id: user.id, name: user.name, email: user.email, role: user.role, profileImageUrl: user.profileImageUrl })
 
-    return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } })
+    return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, profileImageUrl: user.profileImageUrl } })
   } catch (error) {
     console.error(error)
     return NextResponse.json({ error: "เกิดข้อผิดพลาด" }, { status: 500 })

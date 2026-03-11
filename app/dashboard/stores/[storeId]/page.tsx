@@ -6,7 +6,17 @@ import { ServicesTab } from "./services-tab"
 import { ScheduleTab } from "./schedule-tab"
 import { BookingsTab } from "./bookings-tab"
 import { BookingSchedule } from "./booking-schedule"
-import { Store, ArrowLeft } from "lucide-react"
+import { SettingsTab } from "./settings-tab"
+import { ReviewsTab } from "./reviews-tab"
+import { 
+  Store, 
+  ArrowLeft, 
+  CalendarCheck, 
+  Clock, 
+  ConciergeBell, 
+  Star, 
+  Settings as SettingsIcon 
+} from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -15,11 +25,17 @@ async function getStore(storeId: string, ownerId: number) {
     where: {
       id: parseInt(storeId),
       ownerId
-    }
+    },
+    include: {
+      images: {
+        orderBy: {
+          id: 'asc'
+        }
+      }
+    } as any
   })
   return store
 }
-
 async function getServices(storeId: string) {
   const services = await db.service.findMany({
     where: {
@@ -109,7 +125,25 @@ async function getBookings(storeId: string) {
     }
   })
   
-  return bookings.map(booking => ({
+  const statusPriority: Record<string, number> = {
+    'PENDING': 1,
+    'CONFIRMED': 2,
+    'CANCELLED': 3,
+    'COMPLETED': 4
+  }
+
+  const sortedBookings = bookings.sort((a, b) => {
+    const priorityA = statusPriority[a.status] || 99
+    const priorityB = statusPriority[b.status] || 99
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB
+    }
+    
+    return b.bookingDate.getTime() - a.bookingDate.getTime()
+  })
+  
+  return sortedBookings.map(booking => ({
     id: booking.id,
     status: booking.status,
     created_at: booking.createdAt,
@@ -141,15 +175,19 @@ export default async function StoreManagePage({ params }: { params: Promise<{ st
   return (
     <div>
       <div className="mb-6">
-        <Link href="/dashboard">
-          <Button variant="ghost" size="sm" className="gap-2 mb-4 -ml-2 text-muted-foreground">
+        <Button variant="ghost" size="sm" className="gap-2 mb-4 -ml-2 text-muted-foreground" asChild>
+          <Link href="/dashboard">
             <ArrowLeft className="h-4 w-4" />
             กลับแดชบอร์ด
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <Store className="h-6 w-6 text-primary" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 overflow-hidden">
+            {(store as any).profileImageUrl ? (
+              <img src={(store as any).profileImageUrl} alt={store.name} className="h-full w-full object-cover" />
+            ) : (
+              <Store className="h-6 w-6 text-primary" />
+            )}
           </div>
           <div>
             <h1 className="text-2xl font-bold">{store.name}</h1>
@@ -158,11 +196,28 @@ export default async function StoreManagePage({ params }: { params: Promise<{ st
         </div>
       </div>
 
-      <Tabs defaultValue="bookings" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="bookings">การจอง</TabsTrigger>
-          <TabsTrigger value="schedule">ตารางเวลา</TabsTrigger>
-          <TabsTrigger value="services">บริการ</TabsTrigger>
+      <Tabs defaultValue="bookings" className="space-y-8">
+        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap gap-1 border border-border/50 rounded-xl">
+          <TabsTrigger value="bookings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-4 gap-2 rounded-lg transition-all duration-300">
+            <CalendarCheck className="h-4 w-4" />
+            <span>การจอง</span>
+          </TabsTrigger>
+          <TabsTrigger value="schedule" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-4 gap-2 rounded-lg transition-all duration-300">
+            <Clock className="h-4 w-4" />
+            <span>ตารางเวลา</span>
+          </TabsTrigger>
+          <TabsTrigger value="services" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-4 gap-2 rounded-lg transition-all duration-300">
+            <ConciergeBell className="h-4 w-4" />
+            <span>บริการ</span>
+          </TabsTrigger>
+          <TabsTrigger value="reviews" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-4 gap-2 rounded-lg transition-all duration-300">
+            <Star className="h-4 w-4" />
+            <span>รีวิว</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-4 gap-2 rounded-lg transition-all duration-300">
+            <SettingsIcon className="h-4 w-4" />
+            <span>ตั้งค่า</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="bookings">
@@ -175,6 +230,22 @@ export default async function StoreManagePage({ params }: { params: Promise<{ st
         
         <TabsContent value="services">
           <ServicesTab storeId={parseInt(storeId)} services={services} categories={categories} />
+        </TabsContent>
+
+        <TabsContent value="reviews">
+          <ReviewsTab storeId={parseInt(storeId)} />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <SettingsTab store={{
+            id: store.id,
+            name: store.name,
+            description: store.description,
+            location: (store as any).location as string | null,
+            profileImageUrl: (store as any).profileImageUrl as string | null,
+            coverImageUrl: (store as any).coverImageUrl as string | null,
+            images: (store as any).images || []
+          }} />
         </TabsContent>
       </Tabs>
     </div>

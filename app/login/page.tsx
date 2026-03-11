@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { CalendarDays, Eye, EyeOff, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,7 +26,9 @@ export default function LoginPage() {
     try {
       const user = await login(form.email, form.password)
       toast.success("เข้าสู่ระบบสำเร็จ")
-      if (user.role === "OWNER") {
+      if (user.role === "ADMIN") {
+        router.push("/admin")
+      } else if (user.role === "OWNER") {
         router.push("/dashboard")
       } else {
         router.push("/stores")
@@ -39,8 +42,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative overflow-hidden">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-20"><ThemeToggle /></div>
+      {/* Decorative gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-primary font-bold text-2xl mb-2 transition-opacity hover:opacity-80">
             <Image
@@ -56,9 +64,9 @@ export default function LoginPage() {
           <p className="text-muted-foreground">ยินดีต้อนรับกลับมา</p>
         </div>
 
-        <Card>
+        <Card className="border-border/50 bg-card shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
           <CardHeader>
-            <CardTitle className="text-xl">เข้าสู่ระบบ</CardTitle>
+            <CardTitle className="text-xl text-foreground">เข้าสู่ระบบ</CardTitle>
             <CardDescription>กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</CardDescription>
           </CardHeader>
           <CardContent>
@@ -72,6 +80,7 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
+                  className="bg-muted/50 border-border/50 focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -84,18 +93,18 @@ export default function LoginPage() {
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
-                    className="pr-10"
+                    className="pr-10 bg-muted/50 border-border/50 focus:border-primary/50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                   >
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full mt-2" disabled={loading}>
+              <Button type="submit" className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_4px_16px_rgba(245,197,24,0.2)] font-bold" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 เข้าสู่ระบบ
               </Button>

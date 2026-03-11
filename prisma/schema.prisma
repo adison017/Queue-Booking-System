@@ -25,27 +25,44 @@ model User {
   email     String   @unique @db.VarChar(255)
   password  String   @db.VarChar(255)
   role      Role     @default(CUSTOMER)
+  profileImageUrl String?  @map("profile_image_url") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   
   stores   Store[]
   bookings Booking[]
+  reviews  Review[]
 
   @@map("users")
 }
 
 model Store {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(255)
-  description String?   @db.Text
-  ownerId     Int      @map("owner_id")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(255)
+  description     String?  @db.Text
+  location        String?  @db.Text
+  profileImageUrl String?  @map("profile_image_url") @db.Text
+  coverImageUrl   String?  @map("cover_image_url") @db.Text
+  ownerId         Int      @map("owner_id")
+  createdAt       DateTime @default(now()) @map("created_at")
   
-  owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   services  Service[]
   bookings  Booking[]
   schedules StoreSchedule[]
+  images    StoreImage[]
+  reviews   Review[]
 
   @@map("stores")
+}
+
+model StoreImage {
+  id      Int    @id @default(autoincrement())
+  storeId Int    @map("store_id")
+  url     String @db.Text
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_images")
 }
 
 model Category {
@@ -125,6 +142,46 @@ model Booking {
   store   Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   service Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  review  Review?
 
   @@map("bookings")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  storeId   Int      @map("store_id")
+  userId    Int      @map("user_id")
+  bookingId Int?     @unique @map("booking_id")
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  store    Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking  Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  images   ReviewImage[]
+  reply    ReviewReply?
+
+  @@map("reviews")
+}
+
+model ReviewImage {
+  id       Int    @id @default(autoincrement())
+  reviewId Int    @map("review_id")
+  url      String @db.Text
+  
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("review_images")
+}
+
+model ReviewReply {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int      @unique @map("review_id")
+  comment   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("review_replies")
 }

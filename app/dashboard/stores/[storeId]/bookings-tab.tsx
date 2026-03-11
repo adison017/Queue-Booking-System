@@ -25,12 +25,12 @@ type Status = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED"
 interface Booking {
   id: number
   status: Status
-  created_at: string
+  created_at: Date
   customer_name: string
   customer_email: string
   service_name: string
   price: number
-  booking_date: string
+  booking_date: Date
   start_time: string
   end_time: string
 }
@@ -167,7 +167,7 @@ export function BookingsTab({ storeId, bookings }: Props) {
                     <p className="text-sm mt-1">{b.service_name} · <span className="text-primary font-medium">฿{Number(b.price).toLocaleString()}</span></p>
                     <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {format(new Date(b.booking_date), "d MMM yyyy", { locale: th })} · {b.start_time} - {b.end_time} น.
+                      {format(b.booking_date, "d MMM yyyy", { locale: th })} · {b.start_time} - {b.end_time} น.
                     </p>
                   </div>
                 </div>

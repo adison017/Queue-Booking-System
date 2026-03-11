@@ -104,7 +104,7 @@ export function BookingCalendarPage({ storeId, storeName, services }: BookingCal
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-10 pb-32 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="w-full space-y-8 pb-24 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {/* Step Indicator - Floating 3D Style */}
       <div className="relative flex justify-between items-center px-4 md:px-12 bg-background/40 backdrop-blur-xl border-2 border-white/10 rounded-3xl py-4 md:py-6 shadow-2xl">
         <div className="absolute top-[40%] left-0 w-full h-[3px] bg-muted/30 -translate-y-1/2 -z-10" />

@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { getSession } from "@/lib/auth"
 
+function formatTime(date: Date) {
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
 export async function GET(_: NextRequest, { params }: { params: Promise<{ storeId: string }> }) {
   try {
     const session = await getSession()
@@ -19,6 +25,39 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ storeI
     
     if (!store || store.ownerId !== session.id) {
       return NextResponse.json({ error: "ไม่มีสิทธิ์" }, { status: 403 })
+    }
+
+    // Auto-update past bookings to COMPLETED
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const nowTime = formatTime(new Date())
+
+    const pastBookings = await db.booking.findMany({
+      where: {
+        storeId: parseInt(storeId),
+        status: 'CONFIRMED',
+        OR: [
+          {
+            bookingDate: { lt: today }
+          },
+          {
+            bookingDate: today,
+            endTime: { lt: nowTime }
+          }
+        ]
+      }
+    })
+
+    if (pastBookings.length > 0) {
+      await db.booking.updateMany({
+        where: {
+          id: { in: pastBookings.map(b => b.id) }
+        },
+        data: {
+          status: 'COMPLETED'
+        }
+      })
     }
 
     const bookings = await db.booking.findMany({

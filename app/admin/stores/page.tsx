@@ -4,9 +4,20 @@ import { Store, Users } from "lucide-react"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DeleteStoreButton } from "./delete-store-button"
+import { StoresSearch } from "@/components/stores-search"
 
-async function getAdminStores() {
+async function getAdminStores(search?: string) {
+  const where: any = {}
+  
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { owner: { name: { contains: search } } }
+    ]
+  }
+
   return await db.store.findMany({
+    where,
     include: {
       owner: {
         select: {
@@ -27,8 +38,13 @@ async function getAdminStores() {
   })
 }
 
-export default async function ManageStoresPage() {
-  const stores = await getAdminStores()
+export default async function ManageStoresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  const stores = await getAdminStores(q)
 
   return (
     <div>
@@ -42,11 +58,15 @@ export default async function ManageStoresPage() {
         </div>
       </div>
 
+      <div className="mb-6">
+        <StoresSearch defaultValue={q} placeholder="ค้นหาชื่อร้านค้า หรือชื่อเจ้าของร้าน..." />
+      </div>
+
       <Card>
         <CardHeader className="bg-muted/50 pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
             <Store className="h-5 w-5 text-muted-foreground" />
-            รายชื่อร้านค้าทั้งหมด
+            รายชื่อร้านค้าทั้งหมด ({stores.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -63,32 +83,33 @@ export default async function ManageStoresPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {stores.length === 0 && (
+                {stores.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                      ไม่มีร้านค้าในระบบ
+                      ไม่พบร้านค้าที่ค้นหา
                     </td>
                   </tr>
+                ) : (
+                  stores.map((store) => (
+                    <tr key={store.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-medium">{store.name}</td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <div>{store.owner.name}</div>
+                          <div className="text-xs text-muted-foreground">{store.owner.email}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">{store._count.services}</td>
+                      <td className="px-6 py-4 text-center">{store._count.bookings}</td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {format(new Date(store.createdAt), "d MMM yyyy", { locale: th })}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <DeleteStoreButton storeId={store.id} storeName={store.name} />
+                      </td>
+                    </tr>
+                  ))
                 )}
-                {stores.map((store) => (
-                  <tr key={store.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-medium">{store.name}</td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <div>{store.owner.name}</div>
-                        <div className="text-xs text-muted-foreground">{store.owner.email}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">{store._count.services}</td>
-                    <td className="px-6 py-4 text-center">{store._count.bookings}</td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {format(new Date(store.createdAt), "d MMM yyyy", { locale: th })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <DeleteStoreButton storeId={store.id} storeName={store.name} />
-                    </td>
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
@@ -97,3 +118,4 @@ export default async function ManageStoresPage() {
     </div>
   )
 }
+

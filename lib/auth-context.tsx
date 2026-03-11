@@ -1,12 +1,14 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 
 export interface AuthUser {
-  id: string
+  id: number
   email: string
   name: string
   role: 'CUSTOMER' | 'OWNER' | 'ADMIN'
+  profileImageUrl?: string | null
 }
 
 interface AuthContextType {
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -77,8 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    setUser(null)
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setUser(null)
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }
 
   return (

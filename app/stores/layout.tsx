@@ -5,6 +5,8 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { UserNav } from "@/components/user-nav"
 
 export default async function StoresLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -15,7 +17,7 @@ export default async function StoresLayout({ children }: { children: React.React
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-background/80 backdrop-blur-md sticky top-0 z-40">
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-background/80 backdrop-blur-md sticky top-0 z-40">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
@@ -30,8 +32,12 @@ export default async function StoresLayout({ children }: { children: React.React
                 <span>QueueNow (ร้านค้า)</span>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <UserNav />
+            </div>
           </header>
-          <main className="flex-1 px-4 py-8 md:px-8">
+          <main className="flex-1 px-4 py-8 md:px-8 bg-background">
             <div className="mx-auto w-full max-w-7xl">
               {children}
             </div>

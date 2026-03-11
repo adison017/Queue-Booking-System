@@ -85,8 +85,8 @@ export function CustomerBookings({ storeId }: CustomerBookingsProps) {
   }, [storeId, selectedDate])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="lg:col-span-4">
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="w-full">
         <Card className="border-2 border-white/10 bg-background/50 backdrop-blur-xl shadow-2xl rounded-[2rem] overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-white/5 pb-4">
             <CardTitle className="text-xl font-black tracking-tighter flex items-center gap-2">
@@ -102,7 +102,7 @@ export function CustomerBookings({ storeId }: CustomerBookingsProps) {
               selected={selectedDate}
               onSelect={(date) => date && setSelectedDate(date)}
               locale={th}
-              className="rounded-2xl border-white/10 mx-auto"
+              className="rounded-2xl border-white/10 flex justify-center w-full"
               modifiers={{
                 hasBookings: (date) => {
                   const dateKey = format(date, 'yyyy-MM-dd')
@@ -131,7 +131,7 @@ export function CustomerBookings({ storeId }: CustomerBookingsProps) {
         </Card>
       </div>
 
-      <div className="lg:col-span-8">
+      <div className="w-full">
         <Card className="border-2 border-white/10 bg-background/50 backdrop-blur-xl shadow-2xl rounded-[2rem] overflow-hidden">
           <CardHeader className="bg-primary/5 border-b border-white/5 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

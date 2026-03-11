@@ -9,6 +9,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
+  Settings,
   ShieldCheck,
   Store,
   User,
@@ -42,7 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export function AppSidebar() {
   const { user, logout } = useAuth()
@@ -70,6 +71,11 @@ export function AppSidebar() {
       url: '/admin/stores',
       icon: Store,
     },
+    {
+      title: 'ตั้งค่าระบบ',
+      url: '/settings',
+      icon: Settings,
+    },
   ]
 
   const ownerItems = [
@@ -79,14 +85,9 @@ export function AppSidebar() {
       icon: LayoutDashboard,
     },
     {
-      title: 'การวิเคราะห์',
-      url: '/dashboard/analytics',
-      icon: BarChart3,
-    },
-    {
-      title: 'ร้านค้าของฉัน',
-      url: '/stores',
-      icon: Store,
+      title: 'ตั้งค่าร้านค้า',
+      url: '/settings',
+      icon: Settings,
     },
   ]
 
@@ -96,7 +97,7 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="h-16 border-b border-sidebar-border flex items-center px-4">
         <Link href="/" className="flex items-center gap-3 font-bold text-primary">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30 overflow-hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_0_12px_rgba(245,197,24,0.3)] overflow-hidden">
             <Image
               src="/favicon.ico?v=2"
               alt="Logo"
@@ -112,7 +113,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-muted-foreground/60 uppercase tracking-wider text-[10px] font-bold">
             เมนูควบคุม
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -144,7 +145,8 @@ export function AppSidebar() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                <AvatarImage src={user.profileImageUrl || ''} alt={user.name} />
+                <AvatarFallback className="rounded-lg bg-primary/15 text-primary font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -166,7 +168,8 @@ export function AppSidebar() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                  <AvatarImage src={user.profileImageUrl || ''} alt={user.name} />
+                  <AvatarFallback className="rounded-lg bg-primary/15 text-primary font-bold">
                     {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -176,6 +179,12 @@ export function AppSidebar() {
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>ตั้งค่าบัญชี</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />

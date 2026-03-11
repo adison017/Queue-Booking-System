@@ -10,6 +10,7 @@ export interface SessionUser {
   name: string
   email: string
   role: "CUSTOMER" | "OWNER" | "ADMIN"
+  profileImageUrl?: string | null
 }
 
 export async function createToken(user: SessionUser): Promise<string> {

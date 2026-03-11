@@ -30,8 +30,15 @@ interface BookingScheduleTableProps {
 }
 
 export function BookingScheduleTable({ storeId, bookings, onRefresh }: BookingScheduleTableProps) {
+  const [mounted, setMounted] = useState(false)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return <div className="min-h-[400px] flex items-center justify-center">กำลังโหลดตาราง...</div>
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }) // Monday
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))

@@ -189,7 +189,7 @@ export function BookingCalendar({ storeId, selectedTime, onDateSelect, onTimeSel
                  <p className="text-muted-foreground font-black text-xl tracking-tighter">ไม่มีช่วงเวลาว่างในขณะนี้</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {availableSlots.map((slot) => {
                   const isSelected = selectedTime === slot.time
                   return (
@@ -197,7 +197,7 @@ export function BookingCalendar({ storeId, selectedTime, onDateSelect, onTimeSel
                       key={slot.time}
                       variant={isSelected ? "default" : "outline"}
                       className={cn(
-                        "h-14 md:h-16 relative overflow-hidden transition-all duration-300 border-2 rounded-2xl group active:scale-95",
+                        "h-14 md:h-16 relative overflow-hidden transition-all duration-300 border-2 rounded-2xl group active:scale-95 px-2",
                         isSelected 
                           ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/30 -translate-y-1 font-black" 
                           : slot.available 
@@ -207,9 +207,9 @@ export function BookingCalendar({ storeId, selectedTime, onDateSelect, onTimeSel
                       disabled={!slot.available}
                       onClick={() => handleTimeClick(slot.time)}
                     >
-                      <div className="flex flex-col items-center gap-0.5">
+                      <div className="flex flex-col items-center gap-0.5 w-full">
                          <span className={cn(
-                           "text-base md:text-lg font-bold tracking-tighter transition-transform duration-300",
+                           "text-sm sm:text-base md:text-lg font-bold tracking-tight transition-transform duration-300 truncate w-full text-center",
                            isSelected ? "scale-105" : "group-hover:scale-105"
                          )}>
                            {slot.time}

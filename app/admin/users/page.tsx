@@ -4,17 +4,33 @@ import { ShieldAlert, Users } from "lucide-react"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RoleSelect } from "./role-select"
+import { StoresSearch } from "@/components/stores-search"
 
-async function getUsers() {
+async function getUsers(search?: string) {
+  const where: any = {}
+  
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { email: { contains: search } }
+    ]
+  }
+
   return await db.user.findMany({
+    where,
     orderBy: {
       createdAt: 'desc'
     }
   })
 }
 
-export default async function ManageUsersPage() {
-  const users = await getUsers()
+export default async function ManageUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  const users = await getUsers(q)
 
   return (
     <div>
@@ -28,11 +44,15 @@ export default async function ManageUsersPage() {
         </div>
       </div>
 
+      <div className="mb-6">
+        <StoresSearch defaultValue={q} placeholder="ค้นหาชื่อ หรืออีเมลผู้ใช้งาน..." />
+      </div>
+
       <Card>
         <CardHeader className="bg-muted/50 pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-amber-500" />
-            รายชื่อผู้ใช้งานระบบ
+            รายชื่อผู้ใช้งานระบบ ({users.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -47,20 +67,28 @@ export default async function ManageUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-medium">{user.name}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
-                    <td className="px-6 py-4">
-                      {/* Only admins should be able to change roles.
-                          We pass the component their id and current role. */}
-                      <RoleSelect userId={user.id} currentRole={user.role as any} />
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {format(new Date(user.createdAt), "d MMM yyyy", { locale: th })}
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                      ไม่พบผู้ใช้งานที่ค้นหา
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  users.map((user) => (
+                    <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-medium">{user.name}</td>
+                      <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
+                      <td className="px-6 py-4">
+                        {/* Only admins should be able to change roles.
+                            We pass the component their id and current role. */}
+                        <RoleSelect userId={user.id} currentRole={user.role as any} />
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {format(new Date(user.createdAt), "d MMM yyyy", { locale: th })}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -69,3 +97,4 @@ export default async function ManageUsersPage() {
     </div>
   )
 }
+

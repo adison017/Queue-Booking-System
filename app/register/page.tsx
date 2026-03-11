@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { CalendarDays, Eye, EyeOff, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -48,8 +49,13 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 relative overflow-hidden">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-20"><ThemeToggle /></div>
+      {/* Decorative gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-primary font-bold text-2xl mb-2 transition-opacity hover:opacity-80">
             <Image
@@ -65,16 +71,16 @@ function RegisterForm() {
           <p className="text-muted-foreground">สร้างบัญชีใหม่</p>
         </div>
 
-        <Card>
+        <Card className="border-border/50 bg-card shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
           <CardHeader>
-            <CardTitle className="text-xl">สมัครสมาชิก</CardTitle>
+            <CardTitle className="text-xl text-foreground">สมัครสมาชิก</CardTitle>
             <CardDescription>เลือกประเภทบัญชีและกรอกข้อมูล</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={role} onValueChange={(v) => setRole(v as "CUSTOMER" | "OWNER")} className="mb-5">
-              <TabsList className="w-full">
-                <TabsTrigger value="CUSTOMER" className="flex-1">ลูกค้า</TabsTrigger>
-                <TabsTrigger value="OWNER" className="flex-1">เจ้าของร้าน</TabsTrigger>
+              <TabsList className="w-full bg-muted/50">
+                <TabsTrigger value="CUSTOMER" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">ลูกค้า</TabsTrigger>
+                <TabsTrigger value="OWNER" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">เจ้าของร้าน</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -87,6 +93,7 @@ function RegisterForm() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
+                  className="bg-muted/50 border-border/50 focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -98,6 +105,7 @@ function RegisterForm() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
+                  className="bg-muted/50 border-border/50 focus:border-primary/50"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -110,18 +118,18 @@ function RegisterForm() {
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
-                    className="pr-10"
+                    className="pr-10 bg-muted/50 border-border/50 focus:border-primary/50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                   >
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full mt-2" disabled={loading}>
+              <Button type="submit" className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_4px_16px_rgba(245,197,24,0.2)] font-bold" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 {role === "OWNER" ? "สมัครเป็นเจ้าของร้าน" : "สมัครสมาชิก"}
               </Button>

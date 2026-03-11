@@ -32,11 +32,12 @@ export async function POST(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true
+        role: true,
+        profileImageUrl: true,
       }
     })
 
-    await setSession({ id: user.id, name: user.name, email: user.email, role: user.role })
+    await setSession({ id: user.id, name: user.name, email: user.email, role: user.role, profileImageUrl: user.profileImageUrl })
 
     return NextResponse.json({ user })
   } catch (error) {

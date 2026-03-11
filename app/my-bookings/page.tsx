@@ -32,7 +32,27 @@ async function getMyBookings(userId: number) {
     }
   })
   
-  return bookings.map(booking => ({
+  const statusPriority: Record<string, number> = {
+    'PENDING': 1,
+    'CONFIRMED': 2,
+    'CANCELLED': 3,
+    'COMPLETED': 4
+  }
+
+  // Sort by status priority first, then by the existing date descent
+  const sortedBookings = bookings.sort((a, b) => {
+    const priorityA = statusPriority[a.status] || 99
+    const priorityB = statusPriority[b.status] || 99
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB
+    }
+    
+    // Fallback to sort by date descending if status is the same
+    return b.bookingDate.getTime() - a.bookingDate.getTime()
+  })
+  
+  return sortedBookings.map(booking => ({
     id: booking.id,
     status: booking.status,
     created_at: booking.createdAt.toISOString(),
@@ -55,14 +75,14 @@ export default async function MyBookingsPage() {
   return (
     <>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">การจองของฉัน</h1>
+          <h1 className="text-3xl font-bold mb-1 text-foreground">การจอง<span className="text-primary">ของฉัน</span></h1>
           <p className="text-muted-foreground">ดูและจัดการการจองคิวทั้งหมดของคุณ</p>
         </div>
 
         {bookings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <CalendarDays className="h-16 w-16 text-muted-foreground/30 mb-4" />
-            <h2 className="text-xl font-semibold text-muted-foreground">ยังไม่มีการจอง</h2>
+            <CalendarDays className="h-16 w-16 text-primary/20 mb-4" />
+            <h2 className="text-xl font-semibold text-foreground">ยังไม่มีการจอง</h2>
             <p className="text-muted-foreground mt-1 mb-6">ไปเลือกร้านและจองคิวได้เลย</p>
           </div>
         ) : (
@@ -75,11 +95,11 @@ export default async function MyBookingsPage() {
               store_name: string
               service_name: string
               price: number
-              booking_date: string
+              booking_date: Date
               start_time: string
               end_time: string
             }) => (
-              <Card key={b.id}>
+              <Card key={b.id} className="border-border/50 hover:border-primary/20 transition-all">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex items-start gap-3">
@@ -88,7 +108,7 @@ export default async function MyBookingsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold">{b.store_name}</p>
+                          <p className="font-semibold text-foreground">{b.store_name}</p>
                           <StatusBadge status={b.status} />
                         </div>
                         <p className="text-sm text-muted-foreground mt-0.5">{b.service_name} · ฿{Number(b.price).toLocaleString()}</p>
